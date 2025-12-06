@@ -10,7 +10,6 @@ import android.provider.MediaStore
 import androidx.palette.graphics.Palette
 import com.svault.colorpalettecamera.data.model.ColorInfo
 import com.svault.colorpalettecamera.data.model.ColorPalette
-import com.svault.colorpalettecamera.data.model.toComposeColor
 import com.svault.colorpalettecamera.data.model.toHexCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +28,6 @@ object ColorExtractor {
                 palette.vibrantSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Vibrant",
                             population = swatch.population
@@ -40,7 +38,6 @@ object ColorExtractor {
                 palette.lightVibrantSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Light Vibrant",
                             population = swatch.population
@@ -51,7 +48,6 @@ object ColorExtractor {
                 palette.darkVibrantSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Dark Vibrant",
                             population = swatch.population
@@ -63,7 +59,6 @@ object ColorExtractor {
                 palette.mutedSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Muted",
                             population = swatch.population
@@ -74,7 +69,6 @@ object ColorExtractor {
                 palette.lightMutedSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Light Muted",
                             population = swatch.population
@@ -85,7 +79,6 @@ object ColorExtractor {
                 palette.darkMutedSwatch?.let { swatch ->
                     colors.add(
                         ColorInfo(
-                            color = swatch.rgb.toComposeColor(),
                             hexCode = swatch.rgb.toHexCode(),
                             name = "Dark Muted",
                             population = swatch.population
@@ -97,7 +90,6 @@ object ColorExtractor {
                 val dominantSwatch = palette.dominantSwatch
                 val dominantColor = dominantSwatch?.let {
                     ColorInfo(
-                        color = it.rgb.toComposeColor(),
                         hexCode = it.rgb.toHexCode(),
                         name = "Dominant",
                         population = it.population

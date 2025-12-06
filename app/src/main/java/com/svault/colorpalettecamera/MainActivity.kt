@@ -19,7 +19,9 @@ import com.svault.colorpalettecamera.ui.components.BottomNavItem
 import com.svault.colorpalettecamera.ui.theme.ColorPaletteCameraTheme
 import com.svault.colorpalettecamera.utils.PermissionUtils
 import com.svault.colorpalettecamera.utils.PreferencesHelper
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesHelper: PreferencesHelper

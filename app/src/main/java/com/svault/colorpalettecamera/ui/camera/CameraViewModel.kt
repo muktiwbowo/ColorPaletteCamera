@@ -15,14 +15,18 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.svault.colorpalettecamera.data.local.entity.PaletteEntity
 import com.svault.colorpalettecamera.data.model.ColorPalette
+import com.svault.colorpalettecamera.data.repository.PaletteRepository
 import com.svault.colorpalettecamera.utils.ColorExtractor
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import javax.inject.Inject
 
 data class CameraUiState(
     val capturedImageUri: Uri? = null,
@@ -30,10 +34,14 @@ data class CameraUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val colorPalette: ColorPalette? = null,
-    val isExtractingPalette: Boolean = false
+    val isExtractingPalette: Boolean = false,
+    val isSaving: Boolean = false
 )
 
-class CameraViewModel : ViewModel() {
+@HiltViewModel
+class CameraViewModel @Inject constructor(
+    private val paletteRepository: PaletteRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -163,14 +171,44 @@ class CameraViewModel : ViewModel() {
     }
 
     fun saveImage() {
-        // Image is already saved when captured
-        // This function can be used for additional processing or confirmation
-        _uiState.value = _uiState.value.copy(
-            capturedImageUri = null,
-            isImageCaptured = false,
-            error = null,
-            colorPalette = null
-        )
+        viewModelScope.launch {
+            val imageUri = _uiState.value.capturedImageUri
+            val palette = _uiState.value.colorPalette
+
+            if (imageUri != null && palette != null) {
+                _uiState.value = _uiState.value.copy(isSaving = true)
+
+                try {
+                    val paletteEntity = PaletteEntity(
+                        imageUri = imageUri.toString(),
+                        colors = palette.colors,
+                        dominantColor = palette.dominantColor
+                    )
+
+                    paletteRepository.insertPalette(paletteEntity)
+
+                    _uiState.value = _uiState.value.copy(
+                        capturedImageUri = null,
+                        isImageCaptured = false,
+                        error = null,
+                        colorPalette = null,
+                        isSaving = false
+                    )
+                } catch (e: Exception) {
+                    _uiState.value = _uiState.value.copy(
+                        error = "Failed to save palette: ${e.message}",
+                        isSaving = false
+                    )
+                }
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    capturedImageUri = null,
+                    isImageCaptured = false,
+                    error = null,
+                    colorPalette = null
+                )
+            }
+        }
     }
 
     fun clearError() {
