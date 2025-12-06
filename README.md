@@ -115,7 +115,7 @@ app/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/muktiwibowo/colorpalette-camera.git
+git clone https://github.com/muktiwbowo/ColorPaletteCamera
 ```
 
 2. Open the project in Android Studio
