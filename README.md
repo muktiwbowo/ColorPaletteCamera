@@ -26,8 +26,6 @@ ColorPalette Camera transforms the way you discover colors in your environment. 
 - Color palette editing and customization
 - Export palettes in various formats (JSON, CSS, ASE)
 - Share palettes directly to design tools
-- Color naming and palette organization
-- Search photos by color
 
 ## Technical Stack
 
