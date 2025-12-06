@@ -70,19 +70,21 @@ fun CameraScreen(modifier: Modifier = Modifier) {
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (uiState.isImageCaptured && uiState.capturedImageUri != null) {
-            // Image Preview Mode
-            ImagePreviewScreen(
-                imageUri = uiState.capturedImageUri!!,
-                colorPalette = uiState.colorPalette,
-                isExtractingPalette = uiState.isExtractingPalette,
-                onRetake = { viewModel.retakePicture() },
-                onSave = {
-                    viewModel.saveImage()
-                    Toast.makeText(context, "Image saved successfully!", Toast.LENGTH_SHORT).show()
-                }
-            )
-        } else {
+        uiState.capturedImageUri?.let { imageUri ->
+            if (uiState.isImageCaptured) {
+                // Image Preview Mode
+                ImagePreviewScreen(
+                    imageUri = imageUri,
+                    colorPalette = uiState.colorPalette,
+                    isExtractingPalette = uiState.isExtractingPalette,
+                    onRetake = { viewModel.retakePicture() },
+                    onSave = {
+                        viewModel.saveImage()
+                        Toast.makeText(context, "Image saved successfully!", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+        } ?: run {
             // Camera Preview Mode
             Column(modifier = Modifier.fillMaxSize()) {
                 // Camera Preview

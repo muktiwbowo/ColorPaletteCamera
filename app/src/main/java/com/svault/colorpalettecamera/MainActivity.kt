@@ -95,10 +95,8 @@ class MainActivity : ComponentActivity() {
                                 Screen.Camera.route -> {
                                     if (currentRoute == Screen.Permission.route) {
                                         requestPermissions { granted ->
-                                            currentRoute = if (granted || PermissionUtils.hasAllPermissions(this)) {
-                                                Screen.Camera.route
-                                            } else {
-                                                Screen.Camera.route
+                                            if (granted || PermissionUtils.hasAllPermissions(this)) {
+                                                currentRoute = Screen.Camera.route
                                             }
                                         }
                                     } else {

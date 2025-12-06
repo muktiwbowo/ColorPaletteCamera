@@ -63,7 +63,10 @@ fun GalleryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(palettes) { palette ->
+                items(
+                    items = palettes,
+                    key = { palette -> palette.id }
+                ) { palette ->
                     PaletteGridItem(
                         palette = palette,
                         onClick = { onPaletteClick(palette.id) }

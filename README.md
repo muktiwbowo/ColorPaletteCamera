@@ -9,11 +9,18 @@ ColorPalette Camera transforms the way you discover colors in your environment. 
 ## Features
 
 ### Core Features
-- **Real-time Color Detection**: Point your camera at anything and see dominant colors extracted instantly from the live camera feed
-- **Photo Capture**: Take photos and save both the image and its color palette together
-- **Color Palette Extraction**: Advanced algorithm extracts beautiful, dominant colors from images
-- **Hex Code Display**: Each color in the palette shows its hex code for easy use in design tools
-- **Gallery**: Browse previously captured photos with their associated color palettes
+- **Photo Capture**: Take photos using CameraX with front/back camera support
+- **Gallery Picker**: Import existing photos from your device gallery
+- **Color Palette Extraction**: AndroidX Palette API extracts 6 color types from images:
+  - Vibrant, Light Vibrant, Dark Vibrant
+  - Muted, Light Muted, Dark Muted
+  - Plus dominant color identification
+- **Hex Code Display**: Each color shows its hex code for easy copying
+- **Gallery**: Grid view of all saved palettes with image thumbnails
+- **Palette Detail**: View full palette with all extracted colors
+- **Color Detail**: Individual color info with HEX, RGB, HSL values
+- **Copy to Clipboard**: Tap any color to copy its hex code
+- **Onboarding Flow**: Welcome screen and permission request UI
 
 ### Planned Features
 - Color palette editing and customization
@@ -28,33 +35,75 @@ ColorPalette Camera transforms the way you discover colors in your environment. 
 - **Minimum SDK**: API 24 (Android 7.0)
 - **Target SDK**: API 34 (Android 14)
 - **Architecture**: MVVM (Model-View-ViewModel)
-- **Camera**: CameraX API
-- **Color Extraction**: Custom algorithm or Palette API
-- **Storage**: Room Database for palette persistence
+- **Dependency Injection**: Hilt (Dagger)
+- **Camera**: CameraX API (1.4.0)
+- **Color Extraction**: AndroidX Palette API (1.0.0)
+- **Storage**: Room Database (2.6.1) for palette persistence
 - **UI**: Jetpack Compose / Material Design 3
+- **Image Loading**: Coil Compose
+- **Async**: Kotlin Coroutines & Flow
 
 ## Project Structure
 
 ```
 app/
 ├── src/main/
-│   ├── java/com/yourpackage/colorpalettecamera/
+│   ├── java/com/svault/colorpalettecamera/
+│   │   ├── ColorPaletteApp.kt       # Application class with Hilt
+│   │   ├── MainActivity.kt          # Main activity with navigation
 │   │   ├── ui/
-│   │   │   ├── camera/          # Camera screen and preview
-│   │   │   ├── gallery/         # Gallery and saved palettes
-│   │   │   └── components/      # Reusable UI components
+│   │   │   ├── camera/              # Camera feature
+│   │   │   │   ├── CameraScreen.kt       # Camera UI with preview/capture
+│   │   │   │   ├── CameraViewModel.kt    # Camera state management
+│   │   │   │   └── CameraPreview.kt      # CameraX preview composable
+│   │   │   ├── gallery/             # Gallery feature
+│   │   │   │   ├── GalleryScreen.kt      # Grid view of saved palettes
+│   │   │   │   └── GalleryViewModel.kt   # Gallery state management
+│   │   │   ├── detail/              # Detail screens
+│   │   │   │   ├── PaletteDetailScreen.kt      # Full palette view
+│   │   │   │   ├── PaletteDetailViewModel.kt   # Palette detail state
+│   │   │   │   └── ColorDetailScreen.kt        # Individual color info
+│   │   │   ├── onboarding/          # Onboarding flow
+│   │   │   │   ├── OnboardingScreen.kt    # Welcome screen
+│   │   │   │   └── PermissionScreen.kt    # Permission request screen
+│   │   │   ├── components/          # Reusable UI components
+│   │   │   │   ├── BottomNavBar.kt       # Bottom navigation bar
+│   │   │   │   └── PaletteDisplay.kt     # Color palette display widget
+│   │   │   └── theme/               # Material Design 3 theme
+│   │   │       ├── Color.kt              # Blue-based color scheme
+│   │   │       ├── Theme.kt              # Theme configuration
+│   │   │       └── Type.kt               # Typography definitions
 │   │   ├── data/
-│   │   │   ├── model/           # Data models
-│   │   │   ├── repository/      # Data repositories
-│   │   │   └── database/        # Room database
-│   │   ├── domain/
-│   │   │   └── usecase/         # Business logic
-│   │   └── utils/
-│   │       └── ColorExtractor   # Color palette extraction logic
+│   │   │   ├── model/               # Data models
+│   │   │   │   └── ColorPalette.kt       # ColorInfo & ColorPalette models
+│   │   │   ├── local/               # Local database
+│   │   │   │   ├── entity/
+│   │   │   │   │   └── PaletteEntity.kt  # Room entity for palettes
+│   │   │   │   ├── dao/
+│   │   │   │   │   └── PaletteDao.kt     # Database access object
+│   │   │   │   ├── database/
+│   │   │   │   │   └── AppDatabase.kt    # Room database instance
+│   │   │   │   └── converter/
+│   │   │   │       └── ColorListConverter.kt  # JSON type converters
+│   │   │   └── repository/          # Data repositories
+│   │   │       └── PaletteRepository.kt  # Palette data operations
+│   │   ├── di/                      # Dependency injection
+│   │   │   └── DatabaseModule.kt         # Hilt database module
+│   │   ├── navigation/              # Navigation system
+│   │   │   └── NavGraph.kt              # Screen routes & navigation
+│   │   └── utils/                   # Utility classes
+│   │       ├── ColorExtractor.kt        # Palette API color extraction
+│   │       ├── PermissionUtils.kt       # Permission helpers
+│   │       └── PreferencesHelper.kt     # SharedPreferences wrapper
 │   └── res/
-│       ├── layout/              # XML layouts (if using Views)
-│       ├── drawable/            # Icons and images
-│       └── values/              # Strings, colors, themes
+│       ├── drawable/                # Vector icons
+│       │   ├── ic_camera.xml            # Camera tab icon
+│       │   └── ic_gallery.xml           # Gallery tab icon
+│       ├── values/                  # Resources
+│       │   ├── strings.xml              # String resources
+│       │   ├── colors.xml               # Color values
+│       │   └── themes.xml               # App themes
+│       └── mipmap-*/                # App launcher icons
 ```
 
 ## Getting Started
@@ -68,7 +117,7 @@ app/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/colorpalette-camera.git
+git clone https://github.com/muktiwibowo/colorpalette-camera.git
 ```
 
 2. Open the project in Android Studio
@@ -87,35 +136,30 @@ The app requires the following permissions:
 
 ## Usage
 
-1. **Launch the app**: Grant camera permissions when prompted
-2. **Point your camera**: Aim at any scene or object
-3. **View live colors**: See the dominant colors appear in real-time
-4. **Capture**: Tap the capture button to save the photo and palette
-5. **Browse gallery**: Access your saved photos and palettes
-6. **Copy hex codes**: Tap any color to copy its hex code to clipboard
+1. **Launch the app**: Complete onboarding and grant camera permissions when prompted
+2. **Take a photo**:
+   - Tap the camera button to capture a photo
+   - Or tap the gallery icon to select an existing photo
+3. **View palette**: After capture, see the extracted color palette with hex codes
+4. **Save or retake**:
+   - Tap "Save" to store the palette in your gallery
+   - Tap "Retake" to capture a new photo
+5. **Browse gallery**: Switch to Gallery tab to see all saved palettes
+6. **View details**:
+   - Tap any palette to see full details
+   - Tap any color to see RGB, HSL values and copy hex code
 
 ## Color Extraction Algorithm
 
-The app uses an intelligent color extraction algorithm that:
-- Analyzes the image using k-means clustering or similar techniques
-- Identifies dominant and complementary colors
-- Filters out similar colors for palette diversity
-- Ensures colors are vibrant and usable for design purposes
-- Generates 5-8 colors per image (configurable)
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Android CameraX library
-- Material Design guidelines
-- Color theory resources
+The app uses the **AndroidX Palette API** which:
+- Analyzes images using quantization algorithms
+- Extracts 6 distinct color profiles:
+  - **Vibrant colors**: High saturation, medium brightness
+  - **Muted colors**: Low saturation, medium brightness
+  - **Light/Dark variants**: Different brightness levels
+- Identifies the most dominant color by pixel population
+- Returns hex codes, RGB values, and population counts
+- Automatically handles different bitmap configurations (ARGB_8888, Hardware)
 
 ## Contact
 
