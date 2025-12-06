@@ -1,5 +1,6 @@
 package com.svault.colorpalettecamera.ui.detail
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.svault.colorpalettecamera.data.model.ColorInfo
 import com.svault.colorpalettecamera.ui.components.EditPaletteDialog
+import com.svault.colorpalettecamera.ui.components.ExportDialog
+import com.svault.colorpalettecamera.utils.PaletteExporter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,8 +67,10 @@ fun PaletteDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: PaletteDetailViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val palette by viewModel.palette.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
 
     if (showEditDialog) {
         EditPaletteDialog(
@@ -73,6 +79,23 @@ fun PaletteDetailScreen(
             onDismiss = { showEditDialog = false },
             onSave = { name, description ->
                 viewModel.updatePalette(name, description)
+            }
+        )
+    }
+
+    if (showExportDialog) {
+        ExportDialog(
+            onDismiss = { showExportDialog = false },
+            onFormatSelected = { format ->
+                palette?.let { currentPalette ->
+                    val shareIntent = PaletteExporter.createShareIntent(
+                        context,
+                        currentPalette,
+                        format
+                    )
+                    context.startActivity(Intent.createChooser(shareIntent, "Export Palette"))
+                }
+                showExportDialog = false
             }
         )
     }
@@ -96,10 +119,10 @@ fun PaletteDetailScreen(
                             contentDescription = "Edit"
                         )
                     }
-                    IconButton(onClick = { /* TODO: Share */ }) {
+                    IconButton(onClick = { showExportDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Share"
+                            contentDescription = "Export/Share"
                         )
                     }
                     IconButton(onClick = {
