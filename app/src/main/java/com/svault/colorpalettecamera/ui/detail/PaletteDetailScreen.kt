@@ -20,8 +20,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,6 +38,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.svault.colorpalettecamera.data.model.ColorInfo
+import com.svault.colorpalettecamera.ui.components.EditPaletteDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +64,18 @@ fun PaletteDetailScreen(
     viewModel: PaletteDetailViewModel = hiltViewModel()
 ) {
     val palette by viewModel.palette.collectAsState()
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    if (showEditDialog) {
+        EditPaletteDialog(
+            currentName = palette?.name,
+            currentDescription = palette?.description,
+            onDismiss = { showEditDialog = false },
+            onSave = { name, description ->
+                viewModel.updatePalette(name, description)
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -67,12 +84,18 @@ fun PaletteDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showEditDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit"
+                        )
+                    }
                     IconButton(onClick = { /* TODO: Share */ }) {
                         Icon(
                             imageVector = Icons.Default.Share,
@@ -123,6 +146,44 @@ fun PaletteDetailScreen(
                     }
                 }
 
+                // Name and Description
+                if (paletteEntity.name != null || paletteEntity.description != null) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                paletteEntity.name?.let { name ->
+                                    Text(
+                                        text = name,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                paletteEntity.description?.let { description ->
+                                    if (paletteEntity.name != null) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                    Text(
+                                        text = description,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Dominant Color
                 paletteEntity.dominantColor?.let { dominant ->
                     item {
@@ -147,7 +208,10 @@ fun PaletteDetailScreen(
                 items(paletteEntity.colors) { colorInfo ->
                     ColorListItem(
                         colorInfo = colorInfo,
-                        onClick = { onColorClick(colorInfo.hexCode) }
+                        onClick = { onColorClick(colorInfo.hexCode) },
+                        onRemove = if (paletteEntity.colors.size > 1) {
+                            { viewModel.removeColor(colorInfo) }
+                        } else null
                     )
                 }
             }
@@ -212,18 +276,18 @@ fun DominantColorCard(
 fun ColorListItem(
     colorInfo: ColorInfo,
     onClick: () -> Unit,
+    onRemove: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable(onClick = onClick)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -261,6 +325,17 @@ fun ColorListItem(
                         text = "Population: ${colorInfo.population}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            // Remove Button
+            onRemove?.let { removeAction ->
+                IconButton(onClick = removeAction) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove color",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }

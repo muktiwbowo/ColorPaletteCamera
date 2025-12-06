@@ -14,5 +14,7 @@ data class PaletteEntity(
     val imageUri: String,
     val colors: List<ColorInfo>,
     val dominantColor: ColorInfo?,
+    val name: String? = null,
+    val description: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

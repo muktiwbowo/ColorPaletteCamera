@@ -3,6 +3,7 @@ package com.svault.colorpalettecamera.ui.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.svault.colorpalettecamera.data.local.entity.PaletteEntity
+import com.svault.colorpalettecamera.data.model.ColorInfo
 import com.svault.colorpalettecamera.data.repository.PaletteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,39 @@ class PaletteDetailViewModel @Inject constructor(
         currentPaletteId = paletteId
         viewModelScope.launch {
             _palette.value = paletteRepository.getPaletteById(paletteId)
+        }
+    }
+
+    fun updatePalette(name: String, description: String) {
+        viewModelScope.launch {
+            _palette.value?.let { currentPalette ->
+                val updatedPalette = currentPalette.copy(
+                    name = name.ifBlank { null },
+                    description = description.ifBlank { null }
+                )
+                paletteRepository.updatePalette(updatedPalette)
+                _palette.value = updatedPalette
+            }
+        }
+    }
+
+    fun removeColor(colorInfo: ColorInfo) {
+        viewModelScope.launch {
+            _palette.value?.let { currentPalette ->
+                val updatedColors = currentPalette.colors.filter { it != colorInfo }
+                if (updatedColors.isNotEmpty()) {
+                    val updatedPalette = currentPalette.copy(
+                        colors = updatedColors,
+                        dominantColor = if (currentPalette.dominantColor == colorInfo) {
+                            updatedColors.firstOrNull()
+                        } else {
+                            currentPalette.dominantColor
+                        }
+                    )
+                    paletteRepository.updatePalette(updatedPalette)
+                    _palette.value = updatedPalette
+                }
+            }
         }
     }
 
