@@ -14,9 +14,13 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.svault.colorpalettecamera.data.model.ColorPalette
+import com.svault.colorpalettecamera.utils.ColorExtractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -24,7 +28,9 @@ data class CameraUiState(
     val capturedImageUri: Uri? = null,
     val isImageCaptured: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val colorPalette: ColorPalette? = null,
+    val isExtractingPalette: Boolean = false
 )
 
 class CameraViewModel : ViewModel() {
@@ -113,24 +119,46 @@ class CameraViewModel : ViewModel() {
                         isLoading = false,
                         error = null
                     )
+
+                    // Extract color palette
+                    output.savedUri?.let { uri ->
+                        extractColorPalette(context, uri)
+                    }
                 }
             }
         )
     }
 
-    fun setImageFromGallery(uri: Uri) {
+    fun setImageFromGallery(context: Context, uri: Uri) {
         _uiState.value = _uiState.value.copy(
             capturedImageUri = uri,
             isImageCaptured = true,
             error = null
         )
+
+        // Extract color palette
+        extractColorPalette(context, uri)
+    }
+
+    private fun extractColorPalette(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isExtractingPalette = true)
+
+            val palette = ColorExtractor.extractPalette(context, uri)
+
+            _uiState.value = _uiState.value.copy(
+                colorPalette = palette,
+                isExtractingPalette = false
+            )
+        }
     }
 
     fun retakePicture() {
         _uiState.value = _uiState.value.copy(
             capturedImageUri = null,
             isImageCaptured = false,
-            error = null
+            error = null,
+            colorPalette = null
         )
     }
 
@@ -140,7 +168,8 @@ class CameraViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             capturedImageUri = null,
             isImageCaptured = false,
-            error = null
+            error = null,
+            colorPalette = null
         )
     }
 

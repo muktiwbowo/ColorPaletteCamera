@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.svault.colorpalettecamera.R
+import com.svault.colorpalettecamera.data.model.ColorPalette
+import com.svault.colorpalettecamera.ui.components.PaletteDisplay
 
 @Composable
 fun CameraScreen(modifier: Modifier = Modifier) {
@@ -56,7 +58,7 @@ fun CameraScreen(modifier: Modifier = Modifier) {
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-            viewModel.setImageFromGallery(it)
+            viewModel.setImageFromGallery(context, it)
         }
     }
 
@@ -72,6 +74,8 @@ fun CameraScreen(modifier: Modifier = Modifier) {
             // Image Preview Mode
             ImagePreviewScreen(
                 imageUri = uiState.capturedImageUri!!,
+                colorPalette = uiState.colorPalette,
+                isExtractingPalette = uiState.isExtractingPalette,
                 onRetake = { viewModel.retakePicture() },
                 onSave = {
                     viewModel.saveImage()
@@ -182,6 +186,8 @@ fun CameraControls(
 @Composable
 fun ImagePreviewScreen(
     imageUri: android.net.Uri,
+    colorPalette: ColorPalette?,
+    isExtractingPalette: Boolean,
     onRetake: () -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier
@@ -195,63 +201,96 @@ fun ImagePreviewScreen(
             contentScale = ContentScale.Fit
         )
 
-        // Bottom Controls
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
-            color = Color.Black.copy(alpha = 0.7f)
+        // Color Palette Display
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Retake Button
-                Button(
-                    onClick = onRetake,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+            // Palette Card
+            if (isExtractingPalette) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Black.copy(alpha = 0.8f),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_camera),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Retake",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Extracting colors...",
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
+            } else if (colorPalette != null && colorPalette.colors.isNotEmpty()) {
+                PaletteDisplay(palette = colorPalette)
+            }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Save Button
-                Button(
-                    onClick = onSave,
+            // Bottom Controls
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.Black.copy(alpha = 0.7f)
+            ) {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(
-                        text = "Save",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    // Retake Button
+                    Button(
+                        onClick = onRetake,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_camera),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Retake",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Save Button
+                    Button(
+                        onClick = onSave,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Save",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }

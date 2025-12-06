@@ -64,6 +64,9 @@ dependencies {
     // Coil for image loading
     implementation(libs.coil.compose)
 
+    // Palette API for color extraction
+    implementation("androidx.palette:palette-ktx:1.0.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
